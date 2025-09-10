@@ -1,22 +1,25 @@
 (ns build
-  (:require [clojure.tools.build.api :as b])
-  (:import java.util.Date))
-
-(defn get-calendar-branch-version []
-  (let [today  (Date.)
-        commit (b/git-process {:git-args "rev-parse --short HEAD"})]
-    (format "%d.%d.%d-%s"
-            (+ 1900 (.getYear today))
-            (+ 1 (.getMonth today))
-            (.getDate today)
-            commit)))
+  (:require
+   [clojure.string          :as str]
+   [clojure.tools.build.api :as b]))
 
 (def build-folder "target")
 (def jar-content (str build-folder "/classes"))
 (def basis (b/create-basis {:project "deps.edn"}))
 
 (def app-name "geosync")
-(def version (get-calendar-branch-version))
+(defn get-calendar-commit-version
+  "Returns the current git commit's date and hash as YYYY.MM.DD-HASH.
+  Depends on the `git` command being available on the JVM's `$PATH`.
+  Must be run from within a `git` repository."
+  []
+  (let [date   (b/git-process {:git-args "show -s --format=%cs HEAD"})
+        commit (b/git-process {:git-args "rev-parse --short HEAD"})]
+    (-> date
+        (str/replace "-" ".")
+        (str "-" commit))))
+
+(def version (get-calendar-commit-version))
 (def uberjar-file-name (format "%s/%s-%s.jar" build-folder app-name version))
 
 (defn clean [_]
