@@ -191,8 +191,10 @@
 
 (defn update-properties-file!
   [file-path attribute value]
+  (log-str "update-properties-file!:" "file-path:" file-path)
   (let [props (with-open [reader (io/reader file-path)]
                 (doto (Properties.) (.load reader)))]
+    (log-str "attribute" attribute "value" value)
     (with-open [writer (io/writer file-path)]
       (doto ^Properties props
         (.setProperty attribute value)
@@ -226,12 +228,14 @@
    existing-stores
    existing-styles
    {:keys [store-type store-name layer-name file-url style]}]
-  (log-str "file-spec->layer-specs:" file-spec->layer-specs)
+  (log-str "file-spec->layer-specs ...")
   (let [matching-style (get-matching-style layer-name style existing-styles autostyle-layers)]
     (log-str "matching-style:" matching-style)
     (log-str "existing-stores:" existing-stores)
     (log-str "store-name:" store-name)
+    (log-str "store-type:" store-type)
     (when-not (contains? existing-stores store-name)
+      (log-str "WUT!")
       (case store-type
         :geotiff     [(rest/create-coverage-via-put geoserver-workspace store-name file-url)
                       (when matching-style
