@@ -226,11 +226,11 @@
    existing-stores
    existing-styles
    {:keys [store-type store-name layer-name file-url style]}]
-  (println "file-spec->layer-specs:" file-spec->layer-specs)
+  (log-str "file-spec->layer-specs:" file-spec->layer-specs)
   (let [matching-style (get-matching-style layer-name style existing-styles autostyle-layers)]
-    (println "matching-style:" matching-style)
-    (println "existing-stores:" existing-stores)
-    (println "store-name:" store-name)
+    (log-str "matching-style:" matching-style)
+    (log-str "existing-stores:" existing-stores)
+    (log-str "store-name:" store-name)
     (when-not (contains? existing-stores store-name)
       (case store-type
         :geotiff     [(rest/create-coverage-via-put geoserver-workspace store-name file-url)
@@ -511,8 +511,8 @@
   contribute one or more of these to the final sequence. Returns a map
   of these REST specs grouped by spec type."
   [{:keys [geoserver-workspace] :as config-params} gis-file-specs style-file-paths]
-  (println "file-specs->rest-specs:" file-specs->rest-specs)
-  (println "config-params:" config-params)
+  (log-str "file-specs->rest-specs:" file-specs->rest-specs)
+  (log-str "config-params:" config-params)
   (let [ws-exists?              (workspace-exists? config-params)
         layer-rules?            (some? (:layer-rules config-params))
         geofence-rules?         (some? (:geofence-rules config-params))
