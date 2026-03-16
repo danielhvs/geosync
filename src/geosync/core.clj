@@ -511,6 +511,8 @@
   contribute one or more of these to the final sequence. Returns a map
   of these REST specs grouped by spec type."
   [{:keys [geoserver-workspace] :as config-params} gis-file-specs style-file-paths]
+  (println "file-specs->rest-specs:" file-specs->rest-specs)
+  (println "config-params:" config-params)
   (let [ws-exists?              (workspace-exists? config-params)
         layer-rules?            (some? (:layer-rules config-params))
         geofence-rules?         (some? (:geofence-rules config-params))
