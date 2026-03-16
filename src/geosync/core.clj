@@ -227,12 +227,6 @@
    existing-styles
    {:keys [store-type store-name layer-name file-url style]}]
   (let [matching-style (get-matching-style layer-name style existing-styles autostyle-layers)]
-    ;; Always update ImageMosaic properties files (schema + Name) so that
-    ;; stores added in a later GeoSync run have the correct PostGIS schema
-    ;; even if the store already exists from a previous (possibly failed) run.
-    (when (= store-type :imagemosaic)
-      (update-properties-file! (str file-url "/datastore.properties") "schema" geoserver-workspace)
-      (update-properties-file! (str file-url "/indexer.properties") "Name" store-name))
     (when-not (contains? existing-stores store-name)
       (case store-type
         :geotiff     [(rest/create-coverage-via-put geoserver-workspace store-name file-url)
@@ -253,7 +247,9 @@
                        (when matching-style
                          [(rest/update-layer-style geoserver-workspace store-name matching-style :vector)])))
 
-        :imagemosaic (do (clean-image-mosaic-folder (s/replace file-url "file://" ""))
+        :imagemosaic (do (update-properties-file! (str file-url "/datastore.properties") "schema" geoserver-workspace)
+                         (update-properties-file! (str file-url "/indexer.properties") "Name" store-name)
+                         (clean-image-mosaic-folder (s/replace file-url "file://" ""))
                          [(rest/create-coverage-store-image-mosaic geoserver-workspace store-name file-url)
                           (rest/update-coverage-store-image-mosaic geoserver-workspace store-name file-url)
                           (rest/create-coverage-image-mosaic geoserver-workspace store-name)
