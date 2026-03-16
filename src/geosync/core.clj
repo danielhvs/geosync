@@ -226,13 +226,16 @@
    existing-stores
    existing-styles
    {:keys [store-type store-name layer-name file-url style]}]
+  (println "file-spec->layer-specs:" file-spec->layer-specs)
   (let [matching-style (get-matching-style layer-name style existing-styles autostyle-layers)]
+    (println "matching-style:" matching-style)
+    (println "existing-stores:" existing-stores)
+    (println "store-name:" store-name)
     (when-not (contains? existing-stores store-name)
       (case store-type
         :geotiff     [(rest/create-coverage-via-put geoserver-workspace store-name file-url)
                       (when matching-style
                         (rest/update-layer-style geoserver-workspace store-name matching-style :raster))]
-
         :shapefile   (doall
                       (concat
                        [(rest/create-data-store geoserver-workspace store-name file-url)
@@ -246,7 +249,6 @@
                           (rest/delete-feature-type geoserver-workspace store-name layer-name)])
                        (when matching-style
                          [(rest/update-layer-style geoserver-workspace store-name matching-style :vector)])))
-
         :imagemosaic (do (update-properties-file! (str file-url "/datastore.properties") "schema" geoserver-workspace)
                          (update-properties-file! (str file-url "/indexer.properties") "Name" store-name)
                          (clean-image-mosaic-folder (s/replace file-url "file://" ""))
@@ -255,7 +257,6 @@
                           (rest/create-coverage-image-mosaic geoserver-workspace store-name)
                           (when matching-style
                             (rest/update-layer-style geoserver-workspace store-name matching-style :raster))])
-
         (throw (ex-info "Unsupported store type detected."
                         {:store-type store-type :file-url file-url}))))))
 
@@ -436,11 +437,11 @@
    in the `:layer-rules` entry; thus it's safe to call `first` on the matching regex."
   [geoserver-workspace layer-rules]
   (some->> layer-rules
-    (filter #(re-matches (re-pattern (:workspace-regex %)) geoserver-workspace))
-    (first)
-    (:associated-rules)
-    (map (fn [rule]
-           (update rule :layer-rule #(s/replace % #"geoserver-workspace" geoserver-workspace))))))
+           (filter #(re-matches (re-pattern (:workspace-regex %)) geoserver-workspace))
+           (first)
+           (:associated-rules)
+           (map (fn [rule]
+                  (update rule :layer-rule #(s/replace % #"geoserver-workspace" geoserver-workspace))))))
 
 (defn layer-rules->layer-rules-specs
   "Determines any new layer rules that need to be added. Doesn't add any
@@ -788,7 +789,6 @@
                                                                    (make-rest-request config-params)
                                                                    (:status)))
                                                         (every? success-code?))]
-
 
                 (when (and layer-rules? delete-layer-rule-success?)
                   (log (str (count layer-rules-to-delete) " layer rules were removed.")))
